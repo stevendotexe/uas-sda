@@ -39,15 +39,15 @@ public:
     void createQueue();
     bool isEmpty() const;
     bool isFull() const;
-    void insertQueue(Item itemToDeliver);
-    string itemCSVLine(Item itemDetails);
-    void displayQueue();
+    void insertQueue(const Item& itemToDeliver);
+    string itemCSVLine(const Item& itemDetails) const;
+    void displayQueue() const;
+    vector<vector<string>> getQueueData() const;
 };
 
 vector<array<string, 2>> loadDestinations();
-void insertDataIntoCSV();
+void simpanKeCSV(const string& namaFile, const vector<vector<string>>& data);
 
-// Function definitions
 void Item::input() {
     cin.ignore();
     cout << "Item Name\t: ";
@@ -109,41 +109,49 @@ bool ItemQueue::isFull() const {
     return top >= 500;
 }
 
-void ItemQueue::insertQueue(Item itemToDeliver) {
+void ItemQueue::insertQueue(const Item& itemToDeliver) {
     if (!isFull()) {
         itemQueue[top++] = itemToDeliver;
         cout << "Item " << itemToDeliver.getItemName() << " inserted into queue." << endl;
     } else {
-        // write into csv
         cout << "Queue is full. Item not inserted." << endl;
     }
 }
 
-string ItemQueue::itemCSVLine(Item itemDetails) {
-    if (isEmpty()) {
-        return "";
-    } else {
-        Item itemToSend = itemQueue[0];
-        for (int i = 1; i < top; i++) {
-            itemQueue[i - 1] = itemQueue[i];
-        }
-        top--;
-        return itemToSend.getItemName() + "," +
-            to_string(itemToSend.getWeight()) + "," +
-            itemToSend.getOrigin() + "," +
-            itemToSend.getDestination() + "," +
-            to_string(itemToSend.getPrice());
-    }
+string ItemQueue::itemCSVLine(const Item& itemDetails) const {
+    return itemDetails.getItemName() + "," +
+           to_string(itemDetails.getWeight()) + "," +
+           itemDetails.getOrigin() + "," +
+           itemDetails.getDestination() + "," +
+           to_string(itemDetails.getPrice());
 }
 
-void ItemQueue::displayQueue() {
+void ItemQueue::displayQueue() const {
     if (!isEmpty()) {
         cout << "Displaying current items in queue (not written in CSV) (" << top << " items)." << endl;
         cout << "Item Name\t\t" << "Weight\t" << "Destination\t" << endl;
         for (int i = 0; i < top; i++) {
-            cout << left << setw(20) << itemQueue[i].getItemName() << "\t" << itemQueue[i].getWeight() << "\t" << itemQueue[i].getDestination() << endl;
+            cout << left << setw(20) << itemQueue[i].getItemName() << "\t" 
+                 << itemQueue[i].getWeight() << "\t" 
+                 << itemQueue[i].getDestination() << endl;
         }
+    } else {
+        cout << "Queue is empty." << endl;
     }
+}
+
+vector<vector<string>> ItemQueue::getQueueData() const {
+    vector<vector<string>> data;
+    for (int i = 0; i < top; ++i) {
+        data.push_back({
+            itemQueue[i].getItemName(),
+            to_string(itemQueue[i].getWeight()),
+            itemQueue[i].getOrigin(),
+            itemQueue[i].getDestination(),
+            to_string(itemQueue[i].getPrice())
+        });
+    }
+    return data;
 }
 
 vector<array<string, 2>> loadDestinations() {
@@ -166,8 +174,22 @@ vector<array<string, 2>> loadDestinations() {
     return destinations;
 }
 
-void insertDataIntoCSV() {
-    // TODO
+void simpanKeCSV(const string& namaFile, const vector<vector<string>>& data) {
+    ofstream file(namaFile);
+
+    if (file.is_open()) {
+        for (const auto& baris : data) {
+            for (size_t i = 0; i < baris.size(); ++i) {
+                file << baris[i];
+                if (i < baris.size() - 1) file << ","; // Tambahkan koma di antara kolom
+            }
+            file << "\n"; // Baris baru untuk setiap record
+        }
+        file.close();
+        cout << "Data berhasil disimpan ke " << namaFile << endl;
+    } else {
+        cerr << "Tidak dapat membuka file untuk menulis!" << endl;
+    }
 }
 
 int main() {
@@ -200,9 +222,9 @@ int main() {
                     cout << "Asal\t\t: " << origin << endl;
                     cout << "Tujuan\t\t: " << destination << endl;
                     cout << "Prov. Tujuan\t: " << province << endl;
-                    cout << "Berat (gr)\t: " << weight << endl;
+                    cout << "Berat (kg)\t: " << weight << endl;
                     cout << "Tambah barang? (Y/N): ";
-                    getline(cin, confirmation);
+                    cin >> confirmation;
                     if (confirmation == "Y" || confirmation == "y") {
                         queue.insertQueue(item);
                     } else {
@@ -220,15 +242,13 @@ int main() {
             }
             case 3:
             {
-                // TODO: SAVE TO CSV
-                exit(0);
+                vector<vector<string>> data = queue.getQueueData();
+                simpanKeCSV("to_send.csv", data);
+                return 0; // Exit the program
             }
             default:
-                cout << "Input salah!";
+                cout << "Input salah!" << endl;
                 break;
         }
     }
-    
-    
-    return 0;
 }
