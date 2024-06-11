@@ -58,7 +58,7 @@ void Item::input() {
     getline(cin, destination);
     cout << "Province\t: ";
     getline(cin, province);
-    cout << "Weight (g)\t: ";
+    cout << "Weight (kg)\t: ";
     cin >> weight;
     cin.ignore(); // Clear the newline character from the buffer
 }
