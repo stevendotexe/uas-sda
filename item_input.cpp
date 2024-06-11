@@ -88,9 +88,13 @@ string Item::getProvince() const {
     return province;
 }
 
-int Item::getPrice() const {
-    // TODO: COUNT USING MST AND GET ITEM PRICE
-    return 0; // Placeholder
+int Item::getPrice(const unordered_map<string, int>& priceMap) const {
+    auto it = priceMap.find(destination);
+    if (it != priceMap.end()) {
+        return it->second;
+    } else {
+        return 0; // Jika harga tidak ditemukan, kembalikan 0 atau harga default
+    }
 }
 
 float Item::getWeight() const {
@@ -118,29 +122,30 @@ void ItemQueue::insertQueue(const Item& itemToDeliver) {
     }
 }
 
-string ItemQueue::itemCSVLine(const Item& itemDetails) const {
+string ItemQueue::itemCSVLine(const Item& itemDetails, const unordered_map<string, int>& priceMap) const {
     return itemDetails.getItemName() + "," +
            to_string(itemDetails.getWeight()) + "," +
            itemDetails.getOrigin() + "," +
            itemDetails.getDestination() + "," +
-           to_string(itemDetails.getPrice());
+           to_string(itemDetails.getPrice(priceMap));
 }
 
-void ItemQueue::displayQueue() const {
+void ItemQueue::displayQueue(const unordered_map<string, int>& priceMap) const {
     if (!isEmpty()) {
         cout << "Displaying current items in queue (not written in CSV) (" << top << " items)." << endl;
-        cout << "Item Name\t\t" << "Weight\t" << "Destination\t" << endl;
+        cout << "Item Name\t\t" << "Weight\t" << "Destination\t" << "Price\t" << endl;
         for (int i = 0; i < top; i++) {
             cout << left << setw(20) << itemQueue[i].getItemName() << "\t" 
                  << itemQueue[i].getWeight() << "\t" 
-                 << itemQueue[i].getDestination() << endl;
+                 << itemQueue[i].getDestination() << "\t"
+                 << itemQueue[i].getPrice(priceMap) << endl;
         }
     } else {
         cout << "Queue is empty." << endl;
     }
 }
 
-vector<vector<string>> ItemQueue::getQueueData() const {
+vector<vector<string>> ItemQueue::getQueueData(const unordered_map<string, int>& priceMap) const {
     vector<vector<string>> data;
     for (int i = 0; i < top; ++i) {
         data.push_back({
@@ -148,7 +153,7 @@ vector<vector<string>> ItemQueue::getQueueData() const {
             to_string(itemQueue[i].getWeight()),
             itemQueue[i].getOrigin(),
             itemQueue[i].getDestination(),
-            to_string(itemQueue[i].getPrice())
+            to_string(itemQueue[i].getPrice(priceMap))
         });
     }
     return data;
@@ -174,6 +179,27 @@ vector<array<string, 2>> loadDestinations() {
     return destinations;
 }
 
+unordered_map<string, int> loadPrices() {
+    unordered_map<string, int> priceMap;
+
+    ifstream priceFile("data/MST Result.csv");
+    if (!priceFile.is_open()) {
+        cout << "Price file failed to load." << endl;
+    } else {
+        string line;
+        while (getline(priceFile, line)) {
+            stringstream ss(line);
+            string destination;
+            int price;
+            if (getline(ss, destination, ',') && ss >> price) {
+                priceMap[destination] = price;
+            }
+        }
+    }
+    priceFile.close();
+    return priceMap;
+}
+
 void simpanKeCSV(const string& namaFile, const vector<vector<string>>& data) {
     ofstream file(namaFile);
 
@@ -193,62 +219,106 @@ void simpanKeCSV(const string& namaFile, const vector<vector<string>>& data) {
 }
 
 int main() {
+    Akun akun;
     vector<array<string, 2>> destinations = loadDestinations();
+    unordered_map<string, int> priceMap = loadPrices();
     ItemQueue queue;
     queue.createQueue();
 
-    while (true) {
-        int selection;
-        cout << "1. Add item\n";
-        cout << "2. Display queue\n";
-        cout << "3. Exit\n";
-        cout << "Selection: "; cin >> selection;
-        switch(selection){
+    bool isLoggedIn = false;
+    int mainSelection;
+
+    while (!isLoggedIn) {
+        int pilihan;
+        cout << "\nMenu Akun Pengiriman Barang:" << endl;
+        cout << "1. Register" << endl;
+        cout << "2. Login" << endl;
+        cout << "3. Keluar" << endl;
+        cout << "Masukkan pilihan: ";
+        cin >> pilihan;
+
+        switch (pilihan) {
             case 1:
-            {
-                string confirmation;
-                Item item;
+                buatAkunBaru(akun);
+                break;
+            case 2:
+                isLoggedIn = login(akun);
+                break;
+            case 3:
+                cout << "Terima kasih telah menggunakan aplikasi!" << endl;
+                return 0;
+            default:
+                cout << "Pilihan tidak valid!" << endl;
+        }
+    }
 
-                item.input(); // input barang ke dalam objek
-                string itemName = item.getItemName();
-                string origin = item.getOrigin();
-                string destination = item.getDestination();
-                string province = item.getProvince();
-                float weight = item.getWeight();
+    do {
+        cout << "\nMenu Utama:" << endl;
+        cout << "1. Menu Barang" << endl;
+        cout << "2. Keluar" << endl;
+        cout << "Masukkan pilihan: ";
+        cin >> mainSelection;
 
-                if (item.verifyLocation(destinations, destination)) {
-                    cout << "\n==== DETAIL BARANG ====" << endl;
-                    cout << "Nama barang\t: " << itemName << endl;
-                    cout << "Asal\t\t: " << origin << endl;
-                    cout << "Tujuan\t\t: " << destination << endl;
-                    cout << "Prov. Tujuan\t: " << province << endl;
-                    cout << "Berat (kg)\t: " << weight << endl;
-                    cout << "Tambah barang? (Y/N): ";
-                    cin >> confirmation;
-                    if (confirmation == "Y" || confirmation == "y") {
-                        queue.insertQueue(item);
-                    } else {
-                        cout << "Barang tidak ditambahkan." << endl;
+        switch (mainSelection) {
+            case 1: {
+                while (true) {
+                    int selection;
+                    cout << "1. Add item\n";
+                    cout << "2. Display queue\n";
+                    cout << "3. Exit\n";
+                    cout << "Selection: "; cin >> selection;
+                    switch (selection) {
+                        case 1: {
+                            string confirmation;
+                            Item item;
+
+                            item.input();
+                            string itemName = item.getItemName();
+                            string origin = item.getOrigin();
+                            string destination = item.getDestination();
+                            string province = item.getProvince();
+                            float weight = item.getWeight();
+
+                            if (item.verifyLocation(destinations, destination)) {
+                                cout << "\n==== DETAIL BARANG ====" << endl;
+                                cout << "Nama barang\t: " << itemName << endl;
+                                cout << "Asal\t\t: " << origin << endl;
+                                cout << "Tujuan\t\t: " << destination << endl;
+                                cout << "Prov. Tujuan\t: " << province << endl;
+                                cout << "Berat (kg)\t: " << weight << endl;
+                                cout << "Tambah barang? (Y/N): ";
+                                cin >> confirmation;
+                                if (confirmation == "Y" || confirmation == "y") {
+                                    queue.insertQueue(item);
+                                } else {
+                                    cout << "Barang tidak ditambahkan." << endl;
+                                }
+                            } else {
+                                cout << "Destinasi tidak benar." << endl;
+                            }
+                            break;
+                        }
+                        case 2:
+                            queue.displayQueue(priceMap);
+                            break;
+                        case 3: {
+                            vector<vector<string>> data = queue.getQueueData(priceMap);
+                            simpanKeCSV("to_send.csv", data);
+                            return 0;
+                        }
+                        default:
+                            cout << "Input salah!" << endl;
                     }
-                } else {
-                    cout << "Destinasi tidak benar." << endl;
                 }
                 break;
             }
             case 2:
-            {
-                queue.displayQueue();
+                cout << "Terima kasih telah menggunakan aplikasi!" << endl;
                 break;
-            }
-            case 3:
-            {
-                vector<vector<string>> data = queue.getQueueData();
-                simpanKeCSV("to_send.csv", data);
-                return 0; // Exit the program
-            }
             default:
-                cout << "Input salah!" << endl;
-                break;
+                cout << "Pilihan tidak valid!" << endl;
         }
-    }
+    } while (mainSelection != 2);
+
+    return 0;
 }
