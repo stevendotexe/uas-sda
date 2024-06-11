@@ -3,7 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <queue> 
+#include <queue>
 #include <algorithm>
 
 using namespace std;
@@ -11,10 +11,10 @@ using namespace std;
 class Item {
 public:
     string itemName;
+    float weight;
     string origin;
     string destination;
-    string province;
-    float weight;
+    float price;  // Mengubah province menjadi price
 
     static Item fromCSV(const string& csvLine);
     void display() const;
@@ -24,25 +24,27 @@ Item Item::fromCSV(const string& csvLine) {
     Item item;
     stringstream ss(csvLine);
     getline(ss, item.itemName, ',');
-    getline(ss, item.origin, ',');
-    getline(ss, item.destination, ',');
-    getline(ss, item.province, ',');
     string weightStr;
     getline(ss, weightStr, ',');
     item.weight = stof(weightStr);
+    getline(ss, item.origin, ',');
+    getline(ss, item.destination, ',');
+    string priceStr;
+    getline(ss, priceStr, ',');
+    item.price = stof(priceStr);  // Mengambil nilai price dari CSV
     return item;
 }
 
 void Item::display() const {
     cout << "Item Name\t: " << itemName << endl;
+    cout << "Weight (kg)\t: " << weight << endl;
     cout << "Origin\t\t: " << origin << endl;
     cout << "Destination\t: " << destination << endl;
-    cout << "Province\t: " << province << endl;
-    cout << "Weight (kg)\t: " << weight << endl;
+    cout << "Price\t\t: " << price << endl;  // Menampilkan harga
 }
 
 int main() {
-    ifstream inFile("item_data.csv");
+    ifstream inFile("to_send.csv");
     if (!inFile.is_open()) {
         cout << "Unable to open file" << endl;
         return 1;
@@ -53,9 +55,9 @@ int main() {
     queue<Item> southRouteQueue;
     queue<Item> northRouteQueue;
     queue<Item> westRouteQueue;
-    vector<string> southRoute = {"Sukabumi", "Bandung", "Tasikmalaya", "Purwokerto", "Yogyakarta"};
-    vector<string> northRoute = {"Jabodetabek", "Purwakarta", "Indramayu", "Cirebon", "Tegal", "Pekalongan", "Semarang", "Solo", "Ngawi", "Madiun", "Surabaya", "Madura", "Malang", "Banyuwangi", "Bali"};
-    vector<string> westRoute = {"Serang"};
+    vector<string> southRoute = {"sukabumi", "bandung", "tasikmalaya", "purwokerto", "yogyakarta"};
+    vector<string> northRoute = {"jabodetabek", "purwakarta", "indramayu", "cirebon", "tegal", "pekalongan", "semarang", "solo", "ngawi", "madiun", "surabaya", "madura", "malang", "banyuwangi", "bali"};
+    vector<string> westRoute = {"serang"};
 
     while (getline(inFile, line)) {
         Item item = Item::fromCSV(line);
