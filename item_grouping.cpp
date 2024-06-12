@@ -14,7 +14,7 @@ public:
     float weight;
     string origin;
     string destination;
-    float price;  // Mengubah province menjadi price
+    float price;
 
     static Item fromCSV(const string& csvLine);
     void display() const;
@@ -24,29 +24,26 @@ Item Item::fromCSV(const string& csvLine) {
     Item item;
     stringstream ss(csvLine);
     getline(ss, item.itemName, ',');
-    string weightStr;
-    getline(ss, weightStr, ',');
-    item.weight = stof(weightStr);
+    ss >> item.weight;
+    ss.ignore(); // Ignore the comma
     getline(ss, item.origin, ',');
     getline(ss, item.destination, ',');
-    string priceStr;
-    getline(ss, priceStr, ',');
-    item.price = stof(priceStr);  // Mengambil nilai price dari CSV
+    ss >> item.price;
     return item;
 }
 
 void Item::display() const {
-    cout << "Item Name\t: " << itemName << endl;
-    cout << "Weight (kg)\t: " << weight << endl;
-    cout << "Origin\t\t: " << origin << endl;
-    cout << "Destination\t: " << destination << endl;
-    cout << "Price\t\t: " << price << endl;  // Menampilkan harga
+    cout << "Nama Barang: " << itemName << endl;
+    cout << "Berat (kg): " << weight << endl;
+    cout << "Asal: " << origin << endl;
+    cout << "Tujuan: " << destination << endl;
+    cout << "Harga: " << price << endl;
 }
 
 int main() {
     ifstream inFile("to_send.csv");
     if (!inFile.is_open()) {
-        cout << "Unable to open file" << endl;
+        cout << "Tidak bisa membuka file to_send.csv" << endl;
         return 1;
     }
 
@@ -63,14 +60,18 @@ int main() {
         Item item = Item::fromCSV(line);
         items.push_back(item);
 
-        if (find(southRoute.begin(), southRoute.end(), item.destination) != southRoute.end()) {
-            cout << "Item " << item.itemName << " ditambahkan ke antrian South Route." << endl;
+        auto southIter = find(southRoute.begin(), southRoute.end(), item.destination);
+        auto northIter = find(northRoute.begin(), northRoute.end(), item.destination);
+        auto westIter = find(westRoute.begin(), westRoute.end(), item.destination);
+
+        if (southIter != southRoute.end()) {
+            cout << "Item " << item.itemName << " ditambahkan ke antrian Rute Selatan." << endl;
             southRouteQueue.push(item);
-        } else if (find(northRoute.begin(), northRoute.end(), item.destination) != northRoute.end()) {
-            cout << "Item " << item.itemName << " ditambahkan ke antrian North Route." << endl;
+        } else if (northIter != northRoute.end()) {
+            cout << "Item " << item.itemName << " ditambahkan ke antrian Rute Utara." << endl;
             northRouteQueue.push(item);
-        } else if (find(westRoute.begin(), westRoute.end(), item.destination) != westRoute.end()) {
-            cout << "Item " << item.itemName << " ditambahkan ke antrian West Route." << endl;
+        } else if (westIter != westRoute.end()) {
+            cout << "Item " << item.itemName << " ditambahkan ke antrian Rute Barat." << endl;
             westRouteQueue.push(item);
         } else {
             cout << "Destinasi " << item.destination << " tidak dikenali." << endl;
@@ -78,12 +79,30 @@ int main() {
     }
     inFile.close();
 
-    // Menampilkan semua barang yang telah dimuat dari CSV
-    cout << "\nItems loaded from CSV:\n";
+    cout << "\nDaftar barang dari file CSV:\n";
     for (const Item& item : items) {
         item.display();
         cout << "--------------------" << endl;
     }
+
+    auto writeRouteToFile = [](const string& filename, queue<Item>& routeQueue) {
+        ofstream outFile(filename);
+        if (outFile.is_open()) {
+            while (!routeQueue.empty()) {
+                Item item = routeQueue.front();
+                routeQueue.pop();
+                outFile << item.itemName << "," << item.weight << "," << item.origin << "," << item.destination << "," << item.price << endl;
+            }
+            outFile.close();
+            cout << "Data rute ditulis ke file " << filename << endl;
+        } else {
+            cout << "Tidak bisa membuka file " << filename << endl;
+        }
+    };
+
+    writeRouteToFile("data/south.csv", southRouteQueue);
+    writeRouteToFile("data/north.csv", northRouteQueue);
+    writeRouteToFile("data/west.csv", westRouteQueue);
 
     return 0;
 }
