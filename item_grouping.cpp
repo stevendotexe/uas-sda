@@ -14,7 +14,7 @@ public:
     float weight;
     string origin;
     string destination;
-    float price;  // Mengubah province menjadi price
+    float price;  
 
     static Item fromCSV(const string& csvLine);
     void display() const;
@@ -31,22 +31,22 @@ Item Item::fromCSV(const string& csvLine) {
     getline(ss, item.destination, ',');
     string priceStr;
     getline(ss, priceStr, ',');
-    item.price = stof(priceStr);  // Mengambil nilai price dari CSV
+    item.price = stof(priceStr);  
     return item;
 }
 
 void Item::display() const {
-    cout << "Item Name\t: " << itemName << endl;
-    cout << "Weight (kg)\t: " << weight << endl;
-    cout << "Origin\t\t: " << origin << endl;
-    cout << "Destination\t: " << destination << endl;
-    cout << "Price\t\t: " << price << endl;  // Menampilkan harga
+    cout << "Nama Barang\t: " << itemName << endl;
+    cout << "Berat (kg)\t: " << weight << endl;
+    cout << "Asal\t\t: " << origin << endl;
+    cout << "Tujuan\t\t: " << destination << endl;
+    cout << "Harga\t\t: " << price << endl;  
 }
 
 int main() {
     ifstream inFile("to_send.csv");
     if (!inFile.is_open()) {
-        cout << "Unable to open file" << endl;
+        cout << "Tidak bisa membuka file to_send.csv" << endl;
         return 1;
     }
 
@@ -64,13 +64,13 @@ int main() {
         items.push_back(item);
 
         if (find(southRoute.begin(), southRoute.end(), item.destination) != southRoute.end()) {
-            cout << "Item " << item.itemName << " ditambahkan ke antrian South Route." << endl;
+            cout << "Item " << item.itemName << " ditambahkan ke antrian Rute Selatan." << endl;
             southRouteQueue.push(item);
         } else if (find(northRoute.begin(), northRoute.end(), item.destination) != northRoute.end()) {
-            cout << "Item " << item.itemName << " ditambahkan ke antrian North Route." << endl;
+            cout << "Item " << item.itemName << " ditambahkan ke antrian Rute Utara." << endl;
             northRouteQueue.push(item);
         } else if (find(westRoute.begin(), westRoute.end(), item.destination) != westRoute.end()) {
-            cout << "Item " << item.itemName << " ditambahkan ke antrian West Route." << endl;
+            cout << "Item " << item.itemName << " ditambahkan ke antrian Rute Barat." << endl;
             westRouteQueue.push(item);
         } else {
             cout << "Destinasi " << item.destination << " tidak dikenali." << endl;
@@ -78,8 +78,7 @@ int main() {
     }
     inFile.close();
 
-    // Menampilkan semua barang yang telah dimuat dari CSV
-    cout << "\nItems loaded from CSV:\n";
+    cout << "\nDaftar barang dari file CSV:\n";
     for (const Item& item : items) {
         item.display();
         cout << "--------------------" << endl;
