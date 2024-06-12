@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include "prim.cpp"
 
 using namespace std;
 
@@ -34,7 +35,7 @@ public:
     bool verifyLocation(const vector<array<string, 2>>& locations, const string& locationName) const;
     string getDestination() const;
     string getProvince() const;
-    int getPrice() const;
+    int getPrice(string destination, int itemWeight) const;
     float getWeight() const;
 };
 
@@ -148,9 +149,19 @@ string Item::getProvince() const {
     return province;
 }
 
-int Item::getPrice() const {
-    // TODO: COUNT USING MST AND GET ITEM PRICE
-    return 0; // Placeholder
+int Item::getPrice(string destination, int itemWeight) const {
+    int totalRange = getRange(destination);
+    int finalPrice;
+    if (totalRange < 300 && itemWeight > 1){
+        return (7000 * itemWeight);
+    } else if (totalRange < 300 && itemWeight > 1){
+        return 7000;
+    } else {
+        return (7000 * itemWeight * 25); // Rp 25 / km
+    }
+
+
+    return 0; 
 }
 
 float Item::getWeight() const {
@@ -183,7 +194,7 @@ string ItemQueue::itemCSVLine(const Item& itemDetails) const {
            to_string(itemDetails.getWeight()) + "," +
            itemDetails.getOrigin() + "," +
            itemDetails.getDestination() + "," +
-           to_string(itemDetails.getPrice());
+           to_string(itemDetails.getPrice(itemDetails.getDestination(), itemDetails.getWeight()));
 }
 
 void ItemQueue::displayQueue() const {
@@ -208,7 +219,7 @@ vector<vector<string>> ItemQueue::getQueueData() const {
             to_string(itemQueue[i].getWeight()),
             itemQueue[i].getOrigin(),
             itemQueue[i].getDestination(),
-            to_string(itemQueue[i].getPrice())
+            to_string(itemQueue[i].getPrice(itemQueue[i].getDestination(), itemQueue[i].getWeight()))
         });
     }
     return data;
@@ -235,7 +246,8 @@ vector<array<string, 2>> loadDestinations() {
 }
 
 void simpanKeCSV(const string& namaFile, const vector<vector<string>>& data) {
-    ofstream file(namaFile);
+    // Open the file in append mode
+    ofstream file(namaFile, ios::app);
 
     if (file.is_open()) {
         for (const auto& baris : data) {
@@ -311,6 +323,7 @@ int main() {
                             string destination = item.getDestination();
                             string province = item.getProvince();
                             float weight = item.getWeight();
+                            int price = item.getPrice(destination, weight);
 
                             if (item.verifyLocation(destinations, destination)) {
                                 cout << "\n==== DETAIL BARANG ====" << endl;
@@ -319,6 +332,7 @@ int main() {
                                 cout << "Tujuan\t\t: " << destination << endl;
                                 cout << "Prov. Tujuan\t: " << province << endl;
                                 cout << "Berat (kg)\t: " << weight << endl;
+                                cout << "Harga\t" << price << endl;
                                 cout << "Tambah barang? (Y/N): ";
                                 cin >> confirmation;
                                 if (confirmation == "Y" || confirmation == "y") {

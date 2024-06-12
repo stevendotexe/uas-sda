@@ -170,7 +170,7 @@ int main()
 
   outputFile.close();
 
-  cout << 'File has been generated successfully in "data/MST Result"' << endl;
+  cout << "File has been generated successfully in \"data/MST Result\"" << endl;
 
   return 0;
 }

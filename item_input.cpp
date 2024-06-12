@@ -140,23 +140,7 @@ void ItemQueue::displayQueue(const unordered_map<string, int>& priceMap) const {
                  << itemQueue[i].getDestination() << "\t"
                  << itemQueue[i].getPrice(priceMap) << endl;
         }
-    } else {
-        cout << "Queue is empty." << endl;
     }
-}
-
-vector<vector<string>> ItemQueue::getQueueData(const unordered_map<string, int>& priceMap) const {
-    vector<vector<string>> data;
-    for (int i = 0; i < top; ++i) {
-        data.push_back({
-            itemQueue[i].getItemName(),
-            to_string(itemQueue[i].getWeight()),
-            itemQueue[i].getOrigin(),
-            itemQueue[i].getDestination(),
-            to_string(itemQueue[i].getPrice(priceMap))
-        });
-    }
-    return data;
 }
 
 vector<array<string, 2>> loadDestinations() {
@@ -301,12 +285,13 @@ int main() {
                         case 2:
                             queue.displayQueue(priceMap);
                             break;
-                        case 3: {
-                            vector<vector<string>> data = queue.getQueueData(priceMap);
-                            simpanKeCSV("to_send.csv", data);
-                            return 0;
-                        }
-                        default:
+            }
+            case 3:
+            {
+                // TODO: SAVE TO CSV
+                exit(0);
+            }
+            default:
                             cout << "Input salah!" << endl;
                     }
                 }
