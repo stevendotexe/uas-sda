@@ -7,6 +7,7 @@
 #include <sstream>
 #include <iomanip>
 #include "prim.cpp"
+#include <limits>
 
 using namespace std;
 
@@ -120,7 +121,19 @@ void Item::input() {
     cout << "Province\t: ";
     getline(cin, province);
     cout << "Weight (g)\t: ";
-    cin >> weight;
+
+    while(true) {
+        cin >> weight;
+        if (cin.fail() || weight < 0) {
+            cin.clear(); // hapus flag error
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // hapus semua karakter dalam buffer
+            cout << "Operasi tidak valid! Masukkan angka yang benar untuk weight.\n";
+            cout << "Weight (g)\t: ";
+        } else {
+            break;
+        }
+    };
+
     cin.ignore(); // Clear the newline character from the buffer
 }
 
@@ -228,7 +241,7 @@ vector<vector<string>> ItemQueue::getQueueData() const {
 vector<array<string, 2>> loadDestinations() {
     vector<array<string, 2>> destinations;
 
-    ifstream cityFiles("data/destinations.csv");
+    ifstream cityFiles("C:\\Users\\afkar\\OneDrive\\Documents\\.RPL\\SDA\\Pertemuan 16 - UAS\\uas-sda\\data\\destinations.csv");
     if (!cityFiles.is_open()) {
         cout << "Destination files failed to load." << endl;
     } else {
@@ -280,7 +293,18 @@ int main() {
         cout << "2. Login" << endl;
         cout << "3. Keluar" << endl;
         cout << "Masukkan pilihan: ";
-        cin >> pilihan;
+
+        while(true) {
+          cin >> pilihan;
+          if (cin.fail()) {
+            cin.clear(); // hapus flag error
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // hapus semua karakter dalam buffer
+            cout << "Pilihan tidak valid! \n";
+            cout << "Masukkan pilihan: ";
+          } else {
+            break;
+          }
+        };
 
         switch (pilihan) {
             case 1:
